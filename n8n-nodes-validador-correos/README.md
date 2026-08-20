@@ -11,6 +11,18 @@ Sirve para reducir la basura de entrada antes de una campaña. Lo que protege de
 verdad la reputación del dominio remitente es el doble opt-in y la lista de
 supresión de rebotes, no esto.
 
+> ### ⚠️ Solo para n8n autoalojado
+>
+> **Este nodo no funciona en n8n Cloud.** Resuelve los registros MX con el
+> módulo `dns` de Node, y Cloud no permite que un community node importe
+> módulos, así que tampoco puede pasar la verificación.
+>
+> Es una decisión deliberada: el DNS nativo es más rápido que consultar un
+> resolver externo por HTTP y no le cuenta a un tercero qué dominios estás
+> validando. Si necesitas compatibilidad con Cloud, hay que cambiar la
+> resolución a DNS-over-HTTPS — el camino de vuelta está anotado en
+> `eslint.config.mjs`.
+
 ## Qué revisa
 
 | Chequeo | Ejemplo | Resultado |
