@@ -1,0 +1,50 @@
+{
+    "name": "n8n-nodes-validador-correos",
+    "version": "0.1.0",
+    "description": "Nodo de n8n que descarta direcciones de correo imposibles o sospechosas antes de enviar, y sugiere correcciones de dominios mal escritos",
+    "license": "MIT",
+    "homepage": "https://github.com/lafvg12/n8n-nodes-validador-correos",
+    "keywords": [
+        "n8n-community-node-package"
+    ],
+    "author": {
+        "name": "lafvg12",
+        "email": "lafvg12@hotmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lafvg12/n8n-nodes-validador-correos.git"
+    },
+   "scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"test": "tsc -p tsconfig.test.json && node --test \"dist-test/test/*.test.js\"",
+		"test:watch": "tsc -p tsconfig.test.json && node --test --watch \"dist-test/test/*.test.js\"",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+    "files": [
+        "dist"
+    ],
+    "n8n": {
+        "n8nNodesApiVersion": 1,
+        "strict": false,
+        "credentials": [],
+        "nodes": [
+            "dist/nodes/ValidadorCorreos/ValidadorCorreos.node.js"
+        ]
+    },
+    "devDependencies": {
+        "@n8n/node-cli": "*",
+        "eslint": "9.32.0",
+        "prettier": "3.6.2",
+        "release-it": "^19.0.4",
+        "typescript": "5.9.2"
+    },
+    "peerDependencies": {
+        "n8n-workflow": "*"
+    }
+}

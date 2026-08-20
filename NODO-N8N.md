@@ -56,38 +56,55 @@ Que sean dos salidas y no una es deliberado: evita que el usuario tenga que
 poner un nodo Filter después, y hace visible en el canvas que hay correos que
 no se envían.
 
-Cada item de salida conserva todos sus campos originales y añade un objeto
-`validacion`:
+Cada item de salida conserva sus campos originales, añade un campo plano
+`email` con **la** dirección de ese item, y un objeto `validation`:
 
 ```json
 {
-  "validacion": {
-    "original": "  Juan@Gmial.com ",
-    "normalizado": "juan@gmial.com",
-    "para": "juan@gmial.com",
-    "cuenta": "juan",
-    "dominio": "gmial.com",
-    "estado": "invalid",
-    "motivo": "typo",
-    "recomendacion": "reject",
-    "sugerencia": "juan@gmail.com",
-    "corregido": false,
-    "mx": null,
-    "proveedor": null,
+  "email": "juan@gmial.com",
+  "validation": {
+    "email": "  Juan@Gmial.com ",
+    "normalized": "juan@gmial.com",
+    "send_to": null,
+    "account": "juan",
+    "domain": "gmial.com",
+    "status": "invalid",
+    "sub_status": "possible_typo",
+    "recommendation": "reject",
+    "suggestion": "juan@gmail.com",
+    "sendable": false,
+    "free_email": false,
+    "role_based": false,
+    "disposable": false,
+    "normalization_applied": false,
+    "mx_found": false,
+    "mx_record": null,
+    "smtp_provider": null,
     "catch_all": null,
-    "enviable": false,
-    "desde_cache": false,
-    "duracion_ms": 84
+    "domain_age_days": null,
+    "checked_at": "2026-08-20T16:38:09.370Z",
+    "cached": false,
+    "duration_ms": 84
   }
 }
 ```
 
-El campo **`para`** es el que se debe usar en el nodo de envío, nunca el
-original: contiene la dirección ya normalizada.
+> **Nombres en inglés, por decisión.** Una versión anterior de este documento
+> los tenía en español. Se cambiaron a la convención de ZeroBounce para que un
+> flujo pueda pasar de uno al otro sin reescribir las ramas del Switch.
 
-### El campo `recomendacion` es el que importa
+El campo **`email`** de nivel superior es el que se usa en el nodo de envío:
+trae una sola dirección, ya normalizada. Dentro de `validation`, **`send_to`**
+es el mismo valor pero viene en `null` cuando no es enviable, así que sirve
+como red de seguridad si un item se cuela por la rama equivocada.
 
-`estado` y `motivo` son informativos. Este es el que define la acción:
+Cuando el campo de entrada trae un array, el nodo emite un item por dirección
+y **retira el array de la salida**, para que nadie lo mapee al nodo de envío y
+mande varias direcciones juntas.
+
+### El campo `recommendation` es el que importa
+
+`status` y `sub_status` son informativos. Este es el que define la acción:
 
 | Valor | Significado | Salida | Qué se hace |
 |---|---|---|---|
@@ -253,20 +270,24 @@ proceso. Es aceptable y hay que documentarlo, no resolverlo.
 Usa mocks para el DNS. Los tests no deben depender de la red.
 
 ```
-"juan.perez@gmail.com"       → valid / accept
-"juan@gmial.com"             → invalid / typo / reject, sugerencia juan@gmail.com
-"maria@hotmial.com"          → invalid / typo / reject, sugerencia maria@hotmail.com
-"lafvg12@hotmail.com"        → catch_all / confirm
-"asdf@asdf.com"              → invalid / local_basura / reject
-"info@empresa.com.co"        → do_not_mail / rol / manual_review
-"test@mailinator.com"        → do_not_mail / desechable / reject
-"sin-arroba"                 → invalid / sintaxis / reject
-"a@@b.com"                   → invalid / sintaxis / reject
-".juan@gmail.com"            → valid / accept, corregido=true, para=juan@gmail.com
-"a"*65 + "@gmail.com"        → invalid / sintaxis / reject
-"alguien@ymail.com"          → valid / accept, SIN sugerencia
-"alguien@une.net.co"         → valid / accept, SIN sugerencia
+"juan.perez@gmail.com"    → valid / accept
+"juan@gmial.com"          → invalid / possible_typo / reject, suggestion juan@gmail.com
+"maria@hotmial.com"       → invalid / possible_typo / reject, suggestion maria@hotmail.com
+"lafvg12@hotmail.com"     → catch_all / confirm
+"asdf@asdf.com"           → invalid / junk_local_part / reject
+"info@empresa.com.co"     → do_not_mail / role_based / manual_review
+"test@mailinator.com"     → do_not_mail / disposable / reject
+"sin-arroba"              → invalid / failed_syntax_check / reject
+"a@@b.com"                → invalid / failed_syntax_check / reject
+".juan@gmail.com"         → valid / accept, normalization_applied=true, send_to=juan@gmail.com
+"a"*65 + "@gmail.com"     → invalid / failed_syntax_check / reject
+"alguien@ymail.com"       → valid / accept, SIN suggestion
+"alguien@une.net.co"      → valid / accept, SIN suggestion
 ```
+
+Implementados en `test/cascada.test.ts`. Se corren con `npm test`, usan el
+runner nativo de Node y un `FakeResolver` que declara la zona DNS a mano, así
+que ninguno sale a la red.
 
 Los dos últimos son controles de falso positivo: verifican que el detector de
 typos no arruine dominios reales.
