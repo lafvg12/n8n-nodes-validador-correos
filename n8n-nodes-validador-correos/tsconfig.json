@@ -16,6 +16,9 @@
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"incremental": true,
+		// Fuera de dist/: si se queda adentro se publica en el paquete, y son
+		// 200 kB de caché de compilación que a quien lo instala no le sirven.
+		"tsBuildInfoFile": "./.tsbuildinfo",
 		"declaration": true,
 		"sourceMap": true,
 		"skipLibCheck": true,
